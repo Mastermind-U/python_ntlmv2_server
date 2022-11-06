@@ -1,5 +1,5 @@
 import unittest
-from server_client import NTLMv2Client, NTLMv2Server
+from server_client import NTLMv2Client, NTLMv2Server, AuthException
 
 
 class TestServerMethods(unittest.TestCase):
@@ -11,7 +11,7 @@ class TestServerMethods(unittest.TestCase):
         assert client.send('Hello World') == 'Hello World'
 
     def test_missing_session(self):
-        with self.assertRaises(KeyError):
+        with self.assertRaises(AuthException):
             server = NTLMv2Server()
             client = NTLMv2Client(server)
             client.authenticate('user1', '12345', 'example.com')
@@ -19,7 +19,7 @@ class TestServerMethods(unittest.TestCase):
             client.send('Hello World') == 'Hello World'
 
     def test_missing_user(self):
-        with self.assertRaises(KeyError):
+        with self.assertRaises(AuthException):
             client = NTLMv2Client()
             client.authenticate('user3', '12345', 'example.com')
 

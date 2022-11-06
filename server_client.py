@@ -7,6 +7,10 @@ import os
 from utils import hmac_md5, md4, create_ntlm_response
 
 
+class AuthException(Exception):
+    pass
+
+
 class NTLMv2Server:
     """NTLMv2 server implementation.
 
@@ -64,7 +68,7 @@ class NTLMv2Server:
         password_is_ok = self.DATABASE.get(user) == md4(password)
 
         if not user_exists or not password_is_ok:
-            raise KeyError('401 Unauthorized')
+            raise AuthException('401 Unauthorized')
 
         nt_challenge_response, lm_challenge_response, proof_str =\
             create_ntlm_response(
@@ -78,7 +82,7 @@ class NTLMv2Server:
         # validate integrity
         if (lm_response_key != lm_challenge_response
                 or nt_response_key != nt_challenge_response):
-            raise KeyError('401 Unauthorized')
+            raise AuthException('401 Unauthorized')
 
         session_key = hmac_md5(nt_challenge_response, proof_str)
         self.sessions[session_key] = user
@@ -97,7 +101,7 @@ class NTLMv2Server:
         try:
             self.sessions[session_key]
         except KeyError as err:
-            raise KeyError('401 Unauthorized') from err
+            raise AuthException('401 Unauthorized') from err
 
     def request_echo(self, session_key: str, message: str) -> str:
         """Protected echo function, requires valid session key.
